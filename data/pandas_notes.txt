@@ -1,0 +1,17 @@
+Pandas study notes
+
+Pandas is a Python library for tables of data. The two main objects are Series and DataFrame. A Series is one column with an index. A DataFrame is a table of rows and columns, like a spreadsheet.
+
+Read a CSV file with pd.read_csv("sales.csv"). The first row is treated as column names unless you pass header=None. Save a DataFrame with df.to_csv("clean.csv", index=False) so the index is not written as an extra column.
+
+Select one column with df["city"]. Select several columns with df[["city", "sales"]]. Filter rows with a condition: df[df["sales"] > 100]. Combine conditions with & for and, and | for or. Wrap each condition in parentheses.
+
+Missing values appear as NaN. df.isna() marks them. df.dropna() removes rows that contain missing values. df.fillna(0) replaces missing values with 0. For a numeric column, a common choice is to fill with the column mean: df["age"] = df["age"].fillna(df["age"].mean()).
+
+groupby splits the table, applies a calculation, and combines the results. df.groupby("city")["sales"].sum() returns total sales for each city. You can aggregate several ways at once with .agg({"sales": "sum", "orders": "mean"}).
+
+Merge combines two tables by a shared key, like a SQL join. pd.merge(orders, customers, on="customer_id", how="left") keeps every order and adds matching customer columns. how can be "inner", "left", "right", or "outer".
+
+concat stacks tables. pd.concat([df1, df2], axis=0) stacks rows. pd.concat([df1, df2], axis=1) places tables side by side. concat does not match rows by a key. Use merge when the tables must line up on a column.
+
+A useful cleaning order is: load the file, rename columns, fix types with astype, handle missing values, drop duplicate rows with drop_duplicates, then group or merge. Check shape, dtypes, and head after each step so you can see what changed.

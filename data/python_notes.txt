@@ -1,0 +1,21 @@
+Python study notes
+
+A variable in Python is a name that points to a value. You do not declare a type. Python decides the type from the value you assign. Common built-in types are int, float, str, bool, list, tuple, dict, and set.
+
+A list is an ordered, changeable collection written with square brackets. Example: scores = [10, 20, 30]. You can append an item, change an item by index, and remove an item. A list can hold mixed types.
+
+A tuple is an ordered collection that cannot be changed after it is created. It is written with parentheses. Example: point = (4, 7). Use a tuple when the values should stay fixed, such as a coordinate or a database record key.
+
+A dictionary stores key-value pairs in curly braces. Example: student = {"name": "Asha", "marks": 88}. You read a value with the key, student["name"]. Keys must be unique. Use get when a key might be missing, so the program does not raise KeyError.
+
+A set is an unordered collection of unique items. Writing unique = {1, 2, 2, 3} stores {1, 2, 3}. Sets are useful for removing duplicates and for membership tests.
+
+A function is defined with def. It can take parameters and return a value with return. If a function has no return statement, it returns None. Default arguments must come after required arguments.
+
+An exception is an error that happens while the program is running. Put risky code in try, and handle the error in except. Use finally for cleanup that should run whether the try block succeeds or fails. raise creates an exception on purpose.
+
+A class bundles data and behavior. The __init__ method runs when you create an object and usually stores values on self. A method is a function defined inside a class, and its first parameter is self.
+
+A module is a Python file you can import. import math lets you call math.sqrt. from math import sqrt lets you call sqrt directly. Keep reusable functions in their own file so the main script stays short.
+
+Python indentation defines blocks. A block is the indented lines under if, for, while, def, or class. The standard indent is four spaces. Mixing tabs and spaces causes IndentationError.

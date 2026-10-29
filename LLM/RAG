@@ -1,0 +1,100 @@
+
+import os
+from dotenv import load_dotenv
+from pathlib import Path
+
+from langchain_community.document_loaders import TextLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
+
+# Load environment variables
+load_dotenv()
+env_key = os.getenv("OPENAI_API_KEY")
+
+if not env_key:
+    raise ValueError("OPENAI_API_KEY is missing from .env")
+
+path = Path(
+    r"C:\Users\Ashwini Wandre\OneDrive\Desktop\python_basics\LLM\plain.txt"
+)
+
+if not path.exists():
+    raise FileNotFoundError(f"File not found: {path}")
+
+# 1. Load documents
+loader = TextLoader(str(path), encoding="utf-8")
+docs = loader.load()
+
+# 2. Split documents into chunks
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=50
+)
+chunks = splitter.split_documents(docs)
+
+# 3. Create embeddings
+embeddings = OpenAIEmbeddings(
+    model="text-embedding-3-small",
+    api_key=env_key
+)
+
+# 4. Store chunks in persistent ChromaDB
+vector_store = Chroma(
+    collection_name="test",
+    embedding_function=embeddings,
+    persist_directory="./chroma"
+)
+
+# Add documents to the vector store
+vector_store.add_documents(chunks)
+
+# 5. Create retriever
+retriever = vector_store.as_retriever(
+    search_kwargs={"k": 3}
+)
+
+# 6. Initialize LLM
+llm = ChatOpenAI(
+    model="gpt-4.1-mini",
+    temperature=0,
+    api_key=env_key
+)
+
+# 7. Create prompt
+message = """
+Answer the question using only the context below.
+If the answer is not present in the context, say "I don't know".
+
+Context:
+{context}
+
+Question:
+{question}
+"""
+
+prompt = ChatPromptTemplate.from_template(message)
+
+# Format retrieved documents
+def format_docs(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
+
+# 8. Build RAG chain
+rag_chain = (
+    {
+        "context": retriever | format_docs,
+        "question": RunnablePassthrough()
+    }
+    | prompt
+    | llm
+    | StrOutputParser()
+)
+
+# 9. Ask a question
+question = input("Ask a question: ")
+answer = rag_chain.invoke(question)
+
+print("\nAnswer:", answer)
