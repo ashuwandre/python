@@ -1,84 +1,49 @@
-
 import os
+from typing import typedDict
 from dotenv import load_dotenv
 from openai import OpenAI
-
-# Initialize OpenAI
 load_dotenv()
-client = OpenAI(api_key=os.getenv("env_key"))
+
+key = os.getenv('env_key')
+client = OpenAI(api_key = env_key)
+
+calss JokeState(typedDict):
+    topic:str
+    joke:str
+    rating:str
+    
+def joke_generator_node(state:JokeState):
+    topic = state['topic']
+    res = client.chat.completions.create(model ='gpt-4.1-mini',
+                                         temperature = 0,
+                                         messages=[{'role':'system','contenct':('your are comedian create joke ')},
+                                                   {'role':'user','content':"""creta joke on {topic}"""}])
+    joke = res.choices[0].message.content.strip()
+    return {'joke':joke}
+
+def joke_rater(state:JokeState):
+    joke = state['joke']
+    res = client.chat.completions.create(model = 'gpt-4.1-mini',
+                                         temperature=0,
+                                         messages=[{'role':'system','contenct':('your are evaluater  rate joke on 1 to  10 basis ')},
+                                                                                            {'role':'user', "content": f"Rate this joke:\n{state['joke']}"}])
+    
+    rating = res.choices[0].message.content.strip()
+    return {'rating':rating}
+
+agent = StateGraph(JokeState):
+agent.add_node('create':joke_generator_node)
+agent.add_node('rate':joke_rater)
+
+agent.add_edge(START,'create')
+agent.add_edge('create','rate')
+agent.add_edge('rate',END)
 
 
-# Agent 1: Generate a joke
-def joke_generator(topic):
-    res = client.chat.completions.create(
-        model="gpt-4.1-mini",
-        temperature=0.8,
-        messages=[
-            {
-                "role": "system",
-                "content": "You are a funny comedian. Create one short, funny joke."
-            },
-            {
-                "role": "user",
-                "content": f"Create a joke about: {topic}"
-            }
-        ]
-    )
-
-    return res.choices[0].message.content.strip()
-
-
-# Agent 2: Rate the joke
-def joke_rater(joke):
-    res = client.chat.completions.create(
-        model="gpt-4.1-mini",
-        temperature=0,
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are a joke evaluator. Rate the joke from 1 to 10 "
-                    "based on humor, creativity, and relevance. "
-                    "Return a score out of 10 and one short explanation."
-                )
-            },
-            {
-                "role": "user",
-                "content": f"Rate this joke:\n{joke}"
-            }
-        ]
-    )
-
-    return res.choices[0].message.content.strip()
-
-
-# Main workflow
-def run_joke_agent(topic):
-    if not isinstance(topic, str) or not topic.strip():
-        return "Please provide a valid topic."
-
-    # Agent-to-agent call 1: Generate the joke
-    joke = joke_generator(topic.strip())
-
-    # Agent-to-agent call 2: Rate the generated joke
-    rating = joke_rater(joke)
-
-    return {
-        "topic": topic,
-        "joke": joke,
-        "rating": rating
-    }
-
-
-# Test the project
-if __name__ == "__main__":
-    topic = input("Enter a topic for your joke: ")
-
-    result = run_joke_agent(topic)
-
-    if isinstance(result, dict):
-        print("\nTopic:", result["topic"])
-        print("\nGenerated joke:", result["joke"])
-        print("\nJoke rating:", result["rating"])
-    else:
-        print(result)
+graph = agent.complie()
+res = agent.invoke({'topic':'carickt',
+                    'joke':'',
+                    'rating':''}
+                   
+                   )
+print(res)
